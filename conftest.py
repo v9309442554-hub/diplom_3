@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 import platform
+from typing import Iterator
 
 import allure
 import pytest
@@ -60,28 +61,7 @@ def browser_name(request: pytest.FixtureRequest) -> str:
 @pytest.fixture
 def driver(browser_name: str, request: pytest.FixtureRequest):
     headless = HEADLESS and not request.config.getoption("--headed")
-    service = None
-
-    if browser_name == "chrome":
-        options = ChromeOptions()
-        if headless:
-            options.add_argument("--headless=new")
-        options.add_argument(f"--window-size={WINDOW_WIDTH},{WINDOW_HEIGHT}")
-        options.add_argument("--disable-dev-shm-usage")
-        options.add_argument("--no-sandbox")
-        options.add_argument("--disable-notifications")
-        options.add_argument("--lang=ru-RU")
-        browser = webdriver.Chrome(options=options)
-    elif browser_name == "firefox":
-        options = FirefoxOptions()
-        if headless:
-            options.add_argument("-headless")
-        options.add_argument(f"--width={WINDOW_WIDTH}")
-        options.add_argument(f"--height={WINDOW_HEIGHT}")
-        options.set_preference("intl.accept_languages", "ru-RU")
-        browser, service = _create_firefox_driver(options)
-    else:
-        raise pytest.UsageError(f"Unsupported browser: {browser_name}")
+    browser, service = _start_browser(browser_name, headless)
 
     browser.set_window_size(WINDOW_WIDTH, WINDOW_HEIGHT)
     browser.set_page_load_timeout(60)
@@ -97,6 +77,46 @@ def driver(browser_name: str, request: pytest.FixtureRequest):
         browser.quit()
         if service is not None:
             service.stop()
+
+
+def _start_browser(
+    browser_name: str, headless: bool, attempts: int = 2
+) -> tuple[WebDriver, FirefoxService | None]:
+    """Start a browser, retrying once on intermittent WebDriver startup errors."""
+    last_error: Exception | None = None
+
+    for attempt in range(1, attempts + 1):
+        try:
+            if browser_name == "chrome":
+                options = ChromeOptions()
+                if headless:
+                    options.add_argument("--headless=new")
+                options.add_argument(f"--window-size={WINDOW_WIDTH},{WINDOW_HEIGHT}")
+                options.add_argument("--disable-dev-shm-usage")
+                options.add_argument("--no-sandbox")
+                options.add_argument("--disable-notifications")
+                options.add_argument("--lang=ru-RU")
+                options.set_capability("goog:loggingPrefs", {"browser": "ALL"})
+                return webdriver.Chrome(options=options), None
+
+            if browser_name == "firefox":
+                options = FirefoxOptions()
+                if headless:
+                    options.add_argument("-headless")
+                options.add_argument(f"--width={WINDOW_WIDTH}")
+                options.add_argument(f"--height={WINDOW_HEIGHT}")
+                options.set_preference("intl.accept_languages", "ru-RU")
+                return _create_firefox_driver(options)
+
+            raise pytest.UsageError(f"Unsupported browser: {browser_name}")
+        except pytest.UsageError:
+            raise
+        except Exception as error:  # noqa: BLE001 - startup errors differ per browser
+            last_error = error
+            if attempt == attempts:
+                break
+
+    raise RuntimeError(f"Failed to start {browser_name}") from last_error
 
 
 def _create_firefox_driver(options: FirefoxOptions) -> tuple[WebDriver, FirefoxService]:
@@ -123,8 +143,11 @@ def _create_firefox_driver(options: FirefoxOptions) -> tuple[WebDriver, FirefoxS
 
 
 @pytest.fixture
-def user() -> User:
-    return StellarBurgersAPI().register_user()
+def user() -> Iterator[User]:
+    api = StellarBurgersAPI()
+    test_user = api.register_user()
+    yield test_user
+    api.delete_user(test_user.access_token)
 
 
 @pytest.fixture
@@ -135,6 +158,12 @@ def login_page(driver) -> LoginPage:
 @pytest.fixture
 def main_page(driver) -> MainPage:
     return MainPage(driver)
+
+
+@pytest.fixture
+def opened_main_page(main_page: MainPage) -> MainPage:
+    """Общее предусловие тестов: открытая главная страница (конструктор)."""
+    return main_page.open()
 
 
 @pytest.fixture

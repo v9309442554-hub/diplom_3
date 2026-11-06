@@ -19,19 +19,24 @@ class FeedPage(BasePage):
         super().open()
         return self
 
+    @allure.step("Проверить, что открыта лента заказов")
     def is_opened(self) -> bool:
         return self.is_visible(Locators.FEED_HEADING)
 
+    @allure.step("Получить значение счётчика {locator}")
     def _get_counter(self, locator: tuple[str, str]) -> int:
         digits = re.sub(r"\D", "", self.get_text(locator))
         return int(digits)
 
+    @allure.step("Получить счётчик «Выполнено за всё время»")
     def get_total_completed(self) -> int:
         return self._get_counter(Locators.TOTAL_COMPLETED_COUNTER)
 
+    @allure.step("Получить счётчик «Выполнено за сегодня»")
     def get_today_completed(self) -> int:
         return self._get_counter(Locators.TODAY_COMPLETED_COUNTER)
 
+    @allure.step("Получить номера заказов в разделе «В работе»")
     def get_in_progress_numbers(self) -> list[str]:
         numbers = []
         for element in self.elements(Locators.IN_PROGRESS_ITEMS):

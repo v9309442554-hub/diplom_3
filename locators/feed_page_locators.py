@@ -15,5 +15,4 @@ class FeedPageLocators:
         "/following-sibling::p[contains(@class, 'OrderFeed_number')]",
     )
 
-    IN_PROGRESS_LIST = (By.CSS_SELECTOR, "ul[class*='OrderFeed_orderListReady']")
     IN_PROGRESS_ITEMS = (By.CSS_SELECTOR, "ul[class*='OrderFeed_orderListReady'] li")

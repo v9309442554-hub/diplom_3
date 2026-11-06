@@ -7,6 +7,7 @@ import allure
 from pages.feed_page import FeedPage
 from pages.main_page import MainPage
 from utils.api_client import User
+from utils.test_data import Messages
 
 
 @allure.epic("Stellar Burgers")
@@ -60,5 +61,5 @@ class TestOrderFeed:
 
         in_progress_numbers = {str(int(number)) for number in feed_page.get_in_progress_numbers()}
         assert str(int(order_number)) in in_progress_numbers, (
-            f"Заказа {order_number} нет в разделе «В работе»"
+            Messages.ORDER_NOT_IN_PROGRESS.format(order_number=order_number)
         )

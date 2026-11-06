@@ -16,9 +16,6 @@ class LoginPage(BasePage):
         super().open()
         return self
 
-    def is_opened(self) -> bool:
-        return self.is_visible(Locators.LOGIN_HEADING)
-
     @allure.step("Войти в аккаунт пользователя {email}")
     def login(self, email: str, password: str) -> None:
         self.open()

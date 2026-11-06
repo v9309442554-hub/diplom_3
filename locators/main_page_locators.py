@@ -7,10 +7,6 @@ class MainPageLocators:
 
     CONSTRUCTOR_HEADING = (By.XPATH, "//h1[normalize-space()='Соберите бургер']")
 
-    BUNS_TAB = (By.XPATH, "//div[contains(@class, 'tab_tab')][.//span[normalize-space()='Булки']]")
-    SAUCES_TAB = (By.XPATH, "//div[contains(@class, 'tab_tab')][.//span[normalize-space()='Соусы']]")
-    FILLINGS_TAB = (By.XPATH, "//div[contains(@class, 'tab_tab')][.//span[normalize-space()='Начинки']]")
-
     INGREDIENT_CARDS = (By.CSS_SELECTOR, "a[href^='/ingredient/']")
     INGREDIENT_NAME = (By.CSS_SELECTOR, "p[class*='BurgerIngredient_ingredient__text']")
     INGREDIENT_COUNTER = (By.CSS_SELECTOR, "[class*='counter_counter__num']")

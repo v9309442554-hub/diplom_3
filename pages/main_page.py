@@ -17,6 +17,7 @@ class MainPage(BasePage):
         super().open()
         return self
 
+    @allure.step("Проверить, что открыт конструктор")
     def is_opened(self) -> bool:
         return self.is_visible(Locators.CONSTRUCTOR_HEADING)
 
@@ -28,13 +29,11 @@ class MainPage(BasePage):
     def go_to_order_feed(self) -> None:
         self.click(Locators.ORDER_FEED_LINK)
 
+    @allure.step("Получить карточки ингредиентов")
     def get_ingredient_cards(self):
         return self.find_all(Locators.INGREDIENT_CARDS)
 
-    def get_ingredient_name(self, index: int = 0) -> str:
-        card = self.get_ingredient_cards()[index]
-        return card.find_element(*Locators.INGREDIENT_NAME).text.strip()
-
+    @allure.step("Получить счётчик ингредиента №{index}")
     def get_ingredient_counter(self, index: int = 0) -> int:
         card = self.get_ingredient_cards()[index]
         return int(card.find_element(*Locators.INGREDIENT_COUNTER).text.strip())
@@ -48,6 +47,7 @@ class MainPage(BasePage):
         self.find(Locators.MODAL_OPENED)
         return ingredient_name
 
+    @allure.step("Проверить, что модальное окно открыто")
     def is_modal_opened(self) -> bool:
         return any(
             "Modal_modal_opened" in (element.get_attribute("class") or "")
@@ -55,12 +55,15 @@ class MainPage(BasePage):
             for element in self.elements(Locators.MODAL_OPENED)
         )
 
+    @allure.step("Получить заголовок модального окна")
     def get_modal_title(self) -> str:
         return self.find(Locators.MODAL_TITLE).text.strip()
 
+    @allure.step("Получить название ингредиента в модальном окне")
     def get_modal_ingredient_name(self) -> str:
         return self.find(Locators.MODAL_INGREDIENT_NAME).text.strip()
 
+    @allure.step("Получить пищевую ценность ингредиента")
     def get_modal_stats(self) -> list[str]:
         return [element.text.strip() for element in self.elements(Locators.MODAL_STATS)]
 
